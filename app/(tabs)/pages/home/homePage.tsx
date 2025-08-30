@@ -2,7 +2,7 @@ import { IconSymbol } from '@/components/ui/IconSymbol';
 import { Colors } from '@/constants/Colors';
 import { useColorScheme } from '@/hooks/useColorScheme';
 import * as Location from 'expo-location';
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import {
   Alert,
   Platform,
@@ -13,6 +13,7 @@ import {
   View,
 } from 'react-native';
 import MapView, { Marker, PROVIDER_GOOGLE } from 'react-native-maps';
+import CustomLayout from '../../CustomLayout';
 
 interface Region {
   latitude: number;
@@ -29,7 +30,9 @@ export default function AppleMapsPage() {
     latitudeDelta: 0.0922,
     longitudeDelta: 0.0421,
   });
-  const [userLocation, setUserLocation] = useState<{latitude: number, longitude: number} | null>(null);
+  const [userLocation, setUserLocation] = useState<{ latitude: number; longitude: number } | null>(
+    null
+  );
   const [mapType, setMapType] = useState<'standard' | 'satellite' | 'hybrid'>('standard');
 
   useEffect(() => {
@@ -49,7 +52,7 @@ export default function AppleMapsPage() {
 
       let location = await Location.getCurrentPositionAsync({});
       const { latitude, longitude } = location.coords;
-      
+
       setUserLocation({ latitude, longitude });
       setRegion({
         latitude,
@@ -83,81 +86,83 @@ export default function AppleMapsPage() {
   };
 
   return (
-    <View style={styles.container}>
-      <StatusBar barStyle={colorScheme === 'dark' ? 'light-content' : 'dark-content'} />
-      
-      <MapView
-        style={styles.map}
-        region={region}
-        onRegionChangeComplete={setRegion}
-        provider={Platform.OS === 'android' ? PROVIDER_GOOGLE : undefined}
-        mapType={mapType}
-        showsUserLocation={true}
-        showsMyLocationButton={false}
-        showsCompass={true}
-        showsScale={true}
-        rotateEnabled={true}
-        pitchEnabled={true}
-      >
-        {userLocation && (
-          <Marker
-            coordinate={userLocation}
-            title="Your Location"
-            description="You are here"
-          />
-        )}
-      </MapView>
+    <CustomLayout>
+      <View style={StyleSheet.absoluteFillObject}>
+        <StatusBar
+          barStyle={colorScheme === 'dark' ? 'light-content' : 'dark-content'}
+          translucent
 
-      {/* Control buttons */}
-      <View style={styles.controlsContainer}>
-        {/* Location button */}
-        <TouchableOpacity
-          style={[
-            styles.controlButton,
-            { backgroundColor: Colors[colorScheme ?? 'light'].tint }
-          ]}
-          onPress={centerOnUser}
-          activeOpacity={0.8}
+        />
+
+        <MapView
+          style={StyleSheet.absoluteFillObject} // Full-screen map
+          region={region}
+          onRegionChangeComplete={setRegion}
+          provider={Platform.OS === 'android' ? PROVIDER_GOOGLE : undefined}
+          mapType={mapType}
+          showsUserLocation={true}
+          showsMyLocationButton={false}
+          showsCompass={true}
+          showsScale={true}
+          rotateEnabled={true}
+          pitchEnabled={true}
         >
-          <IconSymbol size={20} name="location.fill" color="#fff" />
-        </TouchableOpacity>
+          {userLocation && (
+            <Marker
+              coordinate={userLocation}
+              title="Your Location"
+              description="You are here"
+            />
+          )}
+        </MapView>
 
-        {/* Map type toggle button */}
-        <TouchableOpacity
-          style={[
-            styles.controlButton,
-            { backgroundColor: Colors[colorScheme ?? 'light'].tabIconDefault }
-          ]}
-          onPress={toggleMapType}
-          activeOpacity={0.8}
-        >
-          <IconSymbol size={20} name="map.fill" color="#fff" />
-        </TouchableOpacity>
-      </View>
+        {/* Control buttons */}
+        <View style={styles.controlsContainer}>
+          {/* Location button */}
+          <TouchableOpacity
+            style={[
+              styles.controlButton,
+              { backgroundColor: Colors[colorScheme ?? 'light'].tint },
+            ]}
+            onPress={centerOnUser}
+            activeOpacity={0.8}
+          >
+            <IconSymbol size={20} name="location.fill" color="#fff" />
+          </TouchableOpacity>
 
-      {/* Map type indicator */}
-      <View style={styles.mapTypeIndicator}>
-        <Text style={[
-          styles.mapTypeText,
-          { color: Colors[colorScheme ?? 'light'].text }
-        ]}>
-          {mapType.charAt(0).toUpperCase() + mapType.slice(1)}
-        </Text>
+          {/* Map type toggle button */}
+          <TouchableOpacity
+            style={[
+              styles.controlButton,
+              { backgroundColor: Colors[colorScheme ?? 'light'].tabIconDefault },
+            ]}
+            onPress={toggleMapType}
+            activeOpacity={0.8}
+          >
+            <IconSymbol size={20} name="map.fill" color="#fff" />
+          </TouchableOpacity>
+        </View>
+
+        {/* Map type indicator */}
+        <View style={styles.mapTypeIndicator}>
+          <Text
+            style={[
+              styles.mapTypeText,
+              { color: Colors[colorScheme ?? 'light'].text },
+            ]}
+          >
+            {mapType.charAt(0).toUpperCase() + mapType.slice(1)}
+          </Text>
+        </View>
       </View>
-    </View>
+    </CustomLayout>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-  },
-  map: {
-    flex: 1,
-  },
   controlsContainer: {
     position: 'absolute',
-    bottom: 100, // Above tab bar area
+    bottom: 40, // Above tab bar area
     right: 16,
     flexDirection: 'column',
     gap: 12,
