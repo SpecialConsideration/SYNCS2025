@@ -1,5 +1,5 @@
 import * as Location from "expo-location";
-import { useEffect, useState } from 'react';
+import { useEffect, useState } from "react";
 import {
   ActivityIndicator,
   Alert,
@@ -10,9 +10,10 @@ import {
   Text,
   TextInput,
   TouchableOpacity,
-  View
+  View,
 } from "react-native";
 import MapView, { LatLng, Marker, Polyline, PROVIDER_DEFAULT } from "react-native-maps";
+import CustomLayout from "../../CustomLayout";
 
 const { width, height } = Dimensions.get("window");
 
@@ -24,41 +25,54 @@ interface SearchResult {
 }
 
 export default function SearchableRouteMap() {
-  const [query, setQuery] = useState("");
+  const [queryStart, setQueryStart] = useState("");
+  const [queryEnd, setQueryEnd] = useState("");
   const [results, setResults] = useState<SearchResult[]>([]);
   const [start, setStart] = useState<LatLng | null>(null);
   const [end, setEnd] = useState<LatLng | null>(null);
   const [routeCoords, setRouteCoords] = useState<LatLng[]>([]);
-  const [selecting, setSelecting] = useState<"start" | "end">("start");
   const [loading, setLoading] = useState(false);
   const [routeLoading, setRouteLoading] = useState(false);
 
-  // 🔎 Search API using fetch instead of axios
-  const searchLocation = async (text: string) => {
-    setQuery(text);
+  // 🔎 Search API
+  const searchLocation = async (text: string, type: "start" | "end") => {
     if (text.length < 3) {
       setResults([]);
       return;
     }
-    
+
     setLoading(true);
     try {
       const response = await fetch(
         `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(text)}&limit=5&countrycodes=au`,
         {
-          method: 'GET',
+          method: "GET",
           headers: {
-            'User-Agent': 'AccessibleRouteApp/1.0'
-          }
+            "User-Agent": "AccessibleRouteApp/1.0",
+          },
         }
       );
-      
+
       if (!response.ok) {
         throw new Error(`HTTP error! status: ${response.status}`);
       }
-      
+
       const data = await response.json();
       setResults(data);
+
+      // Automatically set the location if only one result is returned
+      if (data.length === 1) {
+        const loc: LatLng = {
+          latitude: parseFloat(data[0].lat),
+          longitude: parseFloat(data[0].lon),
+        };
+        if (type === "start") {
+          setStart(loc);
+        } else {
+          setEnd(loc);
+        }
+        setResults([]);
+      }
     } catch (err) {
       console.error("Search error:", err);
       Alert.alert("Search Error", "Unable to search locations. Please try again.");
@@ -69,80 +83,33 @@ export default function SearchableRouteMap() {
   };
 
   // 📍 Get Current Location
-  const useCurrentLocation = async () => {
+  const useCurrentLocation = async (type: "start" | "end") => {
     try {
       let { status } = await Location.requestForegroundPermissionsAsync();
       if (status !== "granted") {
         Alert.alert("Permission Required", "Location permission is needed to use current location");
         return;
       }
-      
+
       const location = await Location.getCurrentPositionAsync({
         accuracy: Location.Accuracy.High,
       });
-      
+
       const loc: LatLng = {
         latitude: location.coords.latitude,
         longitude: location.coords.longitude,
       };
-      
-      if (selecting === "start") {
+
+      if (type === "start") {
         setStart(loc);
       } else {
         setEnd(loc);
       }
-      
-      Alert.alert("Success", `${selecting === "start" ? "Start" : "End"} location set to current position`);
+
+      Alert.alert("Success", `${type === "start" ? "Start" : "End"} location set to current position`);
     } catch (error) {
       console.error("Location error:", error);
       Alert.alert("Location Error", "Unable to get current location");
-    }
-  };
-
-  // 🚗 Fetch route using fetch instead of axios
-  const fetchRoute = async (startPoint: LatLng, endPoint: LatLng) => {
-    setRouteLoading(true);
-    try {
-      // Try OSRM first
-      const osrmUrl = `https://router.project-osrm.org/route/v1/driving/${startPoint.longitude},${startPoint.latitude};${endPoint.longitude},${endPoint.latitude}?overview=full&geometries=geojson`;
-      
-      const response = await fetch(osrmUrl, {
-        method: 'GET',
-        headers: {
-          'User-Agent': 'AccessibleRouteApp/1.0'
-        }
-      });
-
-      if (!response.ok) {
-        throw new Error(`OSRM API error: ${response.status}`);
-      }
-
-      const data = await response.json();
-      
-      if (data.routes && data.routes.length > 0) {
-        const coords = data.routes[0].geometry.coordinates.map(
-          (c: [number, number]) => ({
-            latitude: c[1],
-            longitude: c[0],
-          })
-        );
-        setRouteCoords(coords);
-      } else {
-        // Fallback to simple straight line
-        setRouteCoords([startPoint, endPoint]);
-        Alert.alert("Route Notice", "Using straight line route as detailed routing is unavailable");
-      }
-    } catch (err) {
-      console.error("Routing error:", err);
-      
-      // Fallback to simple straight line between points
-      setRouteCoords([startPoint, endPoint]);
-      Alert.alert(
-        "Routing Fallback", 
-        "Detailed routing unavailable. Showing direct line between points."
-      );
-    } finally {
-      setRouteLoading(false);
     }
   };
 
@@ -152,171 +119,135 @@ export default function SearchableRouteMap() {
       setRouteCoords([]);
       return;
     }
-    fetchRoute(start, end);
+
+    const fetchRoute = async () => {
+      setRouteLoading(true);
+      try {
+        const osrmUrl = `https://router.project-osrm.org/route/v1/driving/${start.longitude},${start.latitude};${end.longitude},${end.latitude}?overview=full&geometries=geojson`;
+
+        const response = await fetch(osrmUrl, {
+          method: "GET",
+          headers: {
+            "User-Agent": "AccessibleRouteApp/1.0",
+          },
+        });
+
+        if (!response.ok) {
+          throw new Error(`OSRM API error: ${response.status}`);
+        }
+
+        const data = await response.json();
+
+        if (data.routes && data.routes.length > 0) {
+          const coords = data.routes[0].geometry.coordinates.map((c: [number, number]) => ({
+            latitude: c[1],
+            longitude: c[0],
+          }));
+          setRouteCoords(coords);
+        } else {
+          setRouteCoords([start, end]);
+          Alert.alert("Route Notice", "Using straight line route as detailed routing is unavailable");
+        }
+      } catch (err) {
+        console.error("Routing error:", err);
+        setRouteCoords([start, end]);
+        Alert.alert("Routing Fallback", "Detailed routing unavailable. Showing direct line between points.");
+      } finally {
+        setRouteLoading(false);
+      }
+    };
+
+    fetchRoute();
   }, [start, end]);
 
   // 🖱️ Handle picking from search
-  const handlePick = (item: SearchResult) => {
+  const handlePick = (item: SearchResult, type: "start" | "end") => {
     const loc: LatLng = {
       latitude: parseFloat(item.lat),
       longitude: parseFloat(item.lon),
     };
-    
-    if (selecting === "start") {
+
+    if (type === "start") {
       setStart(loc);
     } else {
       setEnd(loc);
     }
-    
+
     setResults([]);
-    setQuery("");
     Keyboard.dismiss();
   };
 
-  // Quick location presets for Sydney
-  const quickLocations = [
-    { name: "Sydney Opera House", lat: -33.8568, lon: 151.2153 },
-    { name: "Sydney Harbour Bridge", lat: -33.8523, lon: 151.2108 },
-    { name: "Circular Quay", lat: -33.8599, lon: 151.2111 },
-    { name: "Darling Harbour", lat: -33.8688, lon: 151.2018 },
-    { name: "Central Station", lat: -33.8839, lon: 151.2065 },
-  ];
-
-  const setQuickLocation = (location: any) => {
-    const loc: LatLng = {
-      latitude: location.lat,
-      longitude: location.lon,
-    };
-    
-    if (selecting === "start") {
-      setStart(loc);
-    } else {
-      setEnd(loc);
-    }
-  };
-
   return (
-    <View style={styles.container}>
-      <MapView
-        provider={PROVIDER_DEFAULT} // Apple Maps on iOS
-        style={styles.map}
-        initialRegion={{
-          latitude: -33.8568,
-          longitude: 151.2153,
-          latitudeDelta: 0.05,
-          longitudeDelta: 0.05,
-        }}
-        showsUserLocation={true}
-        showsMyLocationButton={false}
-      >
-        {start && <Marker coordinate={start} title="Start" pinColor="green" />}
-        {end && <Marker coordinate={end} title="End" pinColor="red" />}
-        {routeCoords.length > 0 && (
-          <Polyline coordinates={routeCoords} strokeWidth={4} strokeColor="blue" />
-        )}
-      </MapView>
-
-      {/* Search bar */}
-      <View style={styles.searchContainer}>
-        <Text style={styles.searchTitle}>
-          Select {selecting === "start" ? "Start" : "End"} Location
-        </Text>
-        
-        <TextInput
-          style={styles.input}
-          placeholder={`Search ${selecting === "start" ? "start" : "end"} location`}
-          value={query}
-          onChangeText={searchLocation}
-        />
-        
-        {loading && (
-          <View style={styles.loadingContainer}>
-            <ActivityIndicator size="small" color="#007AFF" />
-            <Text style={styles.loadingText}>Searching...</Text>
-          </View>
-        )}
-        
-        {results.length > 0 && (
-          <FlatList
-            data={results}
-            keyExtractor={(item) => item.place_id}
-            style={styles.resultsList}
-            renderItem={({ item }) => (
-              <TouchableOpacity
-                style={styles.result}
-                onPress={() => handlePick(item)}
-              >
-                <Text numberOfLines={2}>{item.display_name}</Text>
-              </TouchableOpacity>
-            )}
-          />
-        )}
-
-        {/* Quick locations */}
-        <Text style={styles.quickTitle}>Quick Locations:</Text>
-        <View style={styles.quickButtons}>
-          {quickLocations.map((location, index) => (
-            <TouchableOpacity
-              key={index}
-              style={styles.quickButton}
-              onPress={() => setQuickLocation(location)}
-            >
-              <Text style={styles.quickButtonText}>{location.name}</Text>
-            </TouchableOpacity>
-          ))}
-        </View>
-      </View>
-
-      {/* Controls */}
-      <View style={styles.controls}>
-        <TouchableOpacity
-          style={[styles.controlButton, styles.switchButton]}
-          onPress={() => setSelecting(selecting === "start" ? "end" : "start")}
-        >
-          <Text style={styles.controlButtonText}>
-            Set {selecting === "start" ? "End" : "Start"}
-          </Text>
-        </TouchableOpacity>
-        
-        <TouchableOpacity
-          style={[styles.controlButton, styles.locationButton]}
-          onPress={useCurrentLocation}
-        >
-          <Text style={styles.controlButtonText}>Current Location</Text>
-        </TouchableOpacity>
-        
-        <TouchableOpacity
-          style={[styles.controlButton, styles.resetButton]}
-          onPress={() => {
-            setStart(null);
-            setEnd(null);
-            setRouteCoords([]);
-            setSelecting("start");
-            setQuery("");
-            setResults([]);
+    <CustomLayout>
+      <View style={styles.container}>
+        <MapView
+          provider={PROVIDER_DEFAULT}
+          style={styles.map}
+          initialRegion={{
+            latitude: -33.8568,
+            longitude: 151.2153,
+            latitudeDelta: 0.05,
+            longitudeDelta: 0.05,
           }}
+          showsUserLocation={true}
+          showsMyLocationButton={false}
         >
-          <Text style={styles.controlButtonText}>Reset</Text>
-        </TouchableOpacity>
+          {start && <Marker coordinate={start} title="Start" pinColor="green" />}
+          {end && <Marker coordinate={end} title="End" pinColor="red" />}
+          {routeCoords.length > 0 && (
+            <Polyline coordinates={routeCoords} strokeWidth={4} strokeColor="blue" />
+          )}
+        </MapView>
+
+        {/* Search bar */}
+        <View style={styles.searchContainer}>
+          <Text style={styles.searchTitle}>Search Start Location</Text>
+          <TextInput
+            style={styles.input}
+            placeholder="Search start location"
+            value={queryStart}
+            onChangeText={(text) => {
+              setQueryStart(text);
+              searchLocation(text, "start");
+            }}
+          />
+
+          <Text style={styles.searchTitle}>Search End Location</Text>
+          <TextInput
+            style={styles.input}
+            placeholder="Search end location"
+            value={queryEnd}
+            onChangeText={(text) => {
+              setQueryEnd(text);
+              searchLocation(text, "end");
+            }}
+          />
+
+          {loading && (
+            <View style={styles.loadingContainer}>
+              <ActivityIndicator size="small" color="#007AFF" />
+              <Text style={styles.loadingText}>Searching...</Text>
+            </View>
+          )}
+
+          {results.length > 0 && (
+            <FlatList
+              data={results}
+              keyExtractor={(item) => item.place_id}
+              style={styles.resultsList}
+              renderItem={({ item }) => (
+                <TouchableOpacity
+                  style={styles.result}
+                  onPress={() => handlePick(item, queryStart ? "start" : "end")}
+                >
+                  <Text numberOfLines={2}>{item.display_name}</Text>
+                </TouchableOpacity>
+              )}
+            />
+          )}
+        </View>
       </View>
-
-      {/* Route status */}
-      {routeLoading && (
-        <View style={styles.routeStatus}>
-          <ActivityIndicator size="small" color="#007AFF" />
-          <Text style={styles.routeStatusText}>Planning route...</Text>
-        </View>
-      )}
-
-      {/* Route info */}
-      {start && end && routeCoords.length > 0 && (
-        <View style={styles.routeInfo}>
-          <Text style={styles.routeInfoText}>
-            Route: {start ? "Start set" : "No start"} → {end ? "End set" : "No end"}
-          </Text>
-        </View>
-      )}
-    </View>
+    </CustomLayout>
   );
 }
 
@@ -341,15 +272,15 @@ const styles = StyleSheet.create({
   searchTitle: {
     fontSize: 16,
     fontWeight: "600",
-    marginBottom: 12,
-    textAlign: "center",
+    marginBottom: 8,
   },
-  input: { 
-    padding: 12, 
+  input: {
+    padding: 12,
     borderWidth: 1,
     borderColor: "#ddd",
     borderRadius: 8,
     fontSize: 16,
+    marginBottom: 16,
   },
   loadingContainer: {
     flexDirection: "row",
@@ -365,100 +296,12 @@ const styles = StyleSheet.create({
     maxHeight: 200,
     marginTop: 8,
   },
-  result: { 
-    padding: 12, 
-    borderBottomWidth: 1, 
+  result: {
+    padding: 12,
+    borderBottomWidth: 1,
     borderColor: "#eee",
     backgroundColor: "#f9f9f9",
     marginVertical: 2,
     borderRadius: 6,
-  },
-  quickTitle: {
-    fontSize: 14,
-    fontWeight: "600",
-    marginTop: 16,
-    marginBottom: 8,
-  },
-  quickButtons: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-    gap: 8,
-  },
-  quickButton: {
-    backgroundColor: "#007AFF",
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 16,
-    marginRight: 4,
-    marginBottom: 4,
-  },
-  quickButtonText: {
-    color: "white",
-    fontSize: 12,
-    fontWeight: "500",
-  },
-  controls: {
-    position: "absolute",
-    bottom: 40,
-    left: 10,
-    right: 10,
-    flexDirection: "row",
-    justifyContent: "space-between",
-    gap: 8,
-  },
-  controlButton: {
-    flex: 1,
-    paddingVertical: 12,
-    paddingHorizontal: 8,
-    borderRadius: 8,
-    alignItems: "center",
-  },
-  switchButton: {
-    backgroundColor: "#34C759",
-  },
-  locationButton: {
-    backgroundColor: "#007AFF",
-  },
-  resetButton: {
-    backgroundColor: "#FF3B30",
-  },
-  controlButtonText: {
-    color: "white",
-    fontSize: 12,
-    fontWeight: "600",
-    textAlign: "center",
-  },
-  routeStatus: {
-    position: "absolute",
-    top: height * 0.7,
-    left: 10,
-    right: 10,
-    backgroundColor: "white",
-    padding: 12,
-    borderRadius: 8,
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "center",
-    shadowColor: "#000",
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-  },
-  routeStatusText: {
-    marginLeft: 8,
-    color: "#666",
-  },
-  routeInfo: {
-    position: "absolute",
-    bottom: 120,
-    left: 10,
-    right: 10,
-    backgroundColor: "rgba(0,0,0,0.8)",
-    padding: 12,
-    borderRadius: 8,
-  },
-  routeInfoText: {
-    color: "white",
-    textAlign: "center",
-    fontSize: 14,
   },
 });

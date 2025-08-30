@@ -71,7 +71,7 @@ const styles = StyleSheet.create({
   },
   floatingButtonsContainer: {
     position: 'absolute',
-    top: -70,
+    top: -20, // Adjusted to make the buttons higher
     left: 0,
     right: 0,
     height: 100,
@@ -80,8 +80,8 @@ const styles = StyleSheet.create({
     alignItems: 'flex-start',
     backgroundColor: 'transparent',
     paddingTop: Platform.select({
-      ios: 60, // Account for iOS status bar and safe area
-      android: (StatusBar.currentHeight || 0) + 16,
+      ios: 50, // Adjusted for iOS safe area
+      android: (StatusBar.currentHeight || 0) + 8, // Adjusted for Android
     }),
     paddingHorizontal: 16,
     pointerEvents: 'box-none', // Allow touches to pass through container
