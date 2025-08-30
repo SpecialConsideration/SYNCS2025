@@ -1,19 +1,21 @@
-import { Tabs } from 'expo-router';
-import React from 'react';
 import { Platform, StatusBar, StyleSheet, TouchableOpacity, View } from 'react-native';
 
-import { HapticTab } from '@/components/HapticTab';
 import { IconSymbol } from '@/components/ui/IconSymbol';
-import TabBarBackground from '@/components/ui/TabBarBackground';
 import { Colors } from '@/constants/Colors';
 import { useColorScheme } from '@/hooks/useColorScheme';
+import { router } from 'expo-router';
 
-export default function TabLayout() {
+interface CustomLayoutProps {
+  children: React.ReactNode; // Accept children as a prop
+}
+
+export default function CustomLayout({ children }: CustomLayoutProps) {
   const colorScheme = useColorScheme();
 
   const handleLeftButtonPress = () => {
     console.log('Left floating button pressed');
     // Add your left button functionality here (e.g., notifications, menu)
+    router.push('/(tabs)/pages/account/accountPage');
   };
 
   const handleRightButtonPress = () => {
@@ -23,18 +25,13 @@ export default function TabLayout() {
 
   return (
     <View style={styles.container}>
-      <Tabs
-        screenOptions={{
-          tabBarActiveTintColor: Colors[colorScheme ?? 'light'].tint,
-          headerShown: false,
-          tabBarButton: HapticTab,
-          tabBarBackground: TabBarBackground,
-          tabBarStyle: {
-            display: 'none', // Hide the tab bar completely
-          },
-        }}>
-        {/* All tabs removed */}
-      </Tabs>
+      <StatusBar
+        translucent
+        backgroundColor="transparent" // Ensure no background color is added
+        barStyle="dark-content"
+      />
+      {/* Render children inside the layout */}
+      {children}
 
       {/* Floating buttons overlay */}
       <View style={styles.floatingButtonsContainer}>
@@ -43,12 +40,12 @@ export default function TabLayout() {
           style={[
             styles.floatingButton,
             styles.leftButton,
-            { backgroundColor: Colors[colorScheme ?? 'light'].tint }
+            { backgroundColor: Colors[colorScheme ?? 'light'].tint },
           ]}
           onPress={handleLeftButtonPress}
           activeOpacity={0.8}
         >
-          <IconSymbol size={20} name="bell.fill" color="#fff" />
+          <IconSymbol size={20} name="person.fill" color="#fff" />
         </TouchableOpacity>
 
         {/* Right floating button */}
@@ -56,12 +53,12 @@ export default function TabLayout() {
           style={[
             styles.floatingButton,
             styles.rightButton,
-            { backgroundColor: Colors[colorScheme ?? 'light'].tabIconDefault }
+            { backgroundColor: Colors[colorScheme ?? 'light'].tint },
           ]}
           onPress={handleRightButtonPress}
           activeOpacity={0.8}
         >
-          <IconSymbol size={20} name="magnifyingglass" color="#fff" />
+          <IconSymbol size={20} name="list.dash" color="#fff" />
         </TouchableOpacity>
       </View>
     </View>
@@ -74,13 +71,14 @@ const styles = StyleSheet.create({
   },
   floatingButtonsContainer: {
     position: 'absolute',
-    top: 0,
+    top: -70,
     left: 0,
     right: 0,
     height: 100,
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'flex-start',
+    backgroundColor: 'transparent',
     paddingTop: Platform.select({
       ios: 60, // Account for iOS status bar and safe area
       android: (StatusBar.currentHeight || 0) + 16,
