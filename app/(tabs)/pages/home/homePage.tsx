@@ -1,13 +1,5 @@
-<<<<<<< HEAD:app/(tabs)/index.tsx
 import * as Location from "expo-location";
-import React, { useEffect, useState } from "react";
-=======
-import { IconSymbol } from '@/components/ui/IconSymbol';
-import { Colors } from '@/constants/Colors';
-import { useColorScheme } from '@/hooks/useColorScheme';
-import * as Location from 'expo-location';
 import { useEffect, useState } from 'react';
->>>>>>> master:app/(tabs)/pages/home/homePage.tsx
 import {
   ActivityIndicator,
   Alert,
@@ -18,16 +10,9 @@ import {
   Text,
   TextInput,
   TouchableOpacity,
-<<<<<<< HEAD:app/(tabs)/index.tsx
   View
 } from "react-native";
 import MapView, { LatLng, Marker, Polyline, PROVIDER_DEFAULT } from "react-native-maps";
-=======
-  View,
-} from 'react-native';
-import MapView, { Marker, PROVIDER_GOOGLE } from 'react-native-maps';
-import CustomLayout from '../../CustomLayout';
->>>>>>> master:app/(tabs)/pages/home/homePage.tsx
 
 const { width, height } = Dimensions.get("window");
 
@@ -38,7 +23,6 @@ interface SearchResult {
   place_id: string;
 }
 
-<<<<<<< HEAD:app/(tabs)/index.tsx
 export default function SearchableRouteMap() {
   const [query, setQuery] = useState("");
   const [results, setResults] = useState<SearchResult[]>([]);
@@ -48,20 +32,6 @@ export default function SearchableRouteMap() {
   const [selecting, setSelecting] = useState<"start" | "end">("start");
   const [loading, setLoading] = useState(false);
   const [routeLoading, setRouteLoading] = useState(false);
-=======
-export default function AppleMapsPage() {
-  const colorScheme = useColorScheme();
-  const [region, setRegion] = useState<Region>({
-    latitude: -33.8688, // Sydney, Australia default
-    longitude: 151.2093,
-    latitudeDelta: 0.0922,
-    longitudeDelta: 0.0421,
-  });
-  const [userLocation, setUserLocation] = useState<{ latitude: number; longitude: number } | null>(
-    null
-  );
-  const [mapType, setMapType] = useState<'standard' | 'satellite' | 'hybrid'>('standard');
->>>>>>> master:app/(tabs)/pages/home/homePage.tsx
 
   // 🔎 Search API using fetch instead of axios
   const searchLocation = async (text: string) => {
@@ -106,22 +76,9 @@ export default function AppleMapsPage() {
         Alert.alert("Permission Required", "Location permission is needed to use current location");
         return;
       }
-<<<<<<< HEAD:app/(tabs)/index.tsx
       
       const location = await Location.getCurrentPositionAsync({
         accuracy: Location.Accuracy.High,
-=======
-
-      let location = await Location.getCurrentPositionAsync({});
-      const { latitude, longitude } = location.coords;
-
-      setUserLocation({ latitude, longitude });
-      setRegion({
-        latitude,
-        longitude,
-        latitudeDelta: 0.0922,
-        longitudeDelta: 0.0421,
->>>>>>> master:app/(tabs)/pages/home/homePage.tsx
       });
       
       const loc: LatLng = {
@@ -239,7 +196,6 @@ export default function AppleMapsPage() {
   };
 
   return (
-<<<<<<< HEAD:app/(tabs)/index.tsx
     <View style={styles.container}>
       <MapView
         provider={PROVIDER_DEFAULT} // Apple Maps on iOS
@@ -361,83 +317,10 @@ export default function AppleMapsPage() {
         </View>
       )}
     </View>
-=======
-    <CustomLayout>
-      <View style={StyleSheet.absoluteFillObject}>
-        <StatusBar
-          barStyle={colorScheme === 'dark' ? 'light-content' : 'dark-content'}
-          translucent
-
-        />
-
-        <MapView
-          style={StyleSheet.absoluteFillObject} // Full-screen map
-          region={region}
-          onRegionChangeComplete={setRegion}
-          provider={Platform.OS === 'android' ? PROVIDER_GOOGLE : undefined}
-          mapType={mapType}
-          showsUserLocation={true}
-          showsMyLocationButton={false}
-          showsCompass={true}
-          showsScale={true}
-          rotateEnabled={true}
-          pitchEnabled={true}
-        >
-          {userLocation && (
-            <Marker
-              coordinate={userLocation}
-              title="Your Location"
-              description="You are here"
-            />
-          )}
-        </MapView>
-
-        {/* Control buttons */}
-        <View style={styles.controlsContainer}>
-          {/* Location button */}
-          <TouchableOpacity
-            style={[
-              styles.controlButton,
-              { backgroundColor: Colors[colorScheme ?? 'light'].tint },
-            ]}
-            onPress={centerOnUser}
-            activeOpacity={0.8}
-          >
-            <IconSymbol size={20} name="location.fill" color="#fff" />
-          </TouchableOpacity>
-
-          {/* Map type toggle button */}
-          <TouchableOpacity
-            style={[
-              styles.controlButton,
-              { backgroundColor: Colors[colorScheme ?? 'light'].tabIconDefault },
-            ]}
-            onPress={toggleMapType}
-            activeOpacity={0.8}
-          >
-            <IconSymbol size={20} name="map.fill" color="#fff" />
-          </TouchableOpacity>
-        </View>
-
-        {/* Map type indicator */}
-        <View style={styles.mapTypeIndicator}>
-          <Text
-            style={[
-              styles.mapTypeText,
-              { color: Colors[colorScheme ?? 'light'].text },
-            ]}
-          >
-            {mapType.charAt(0).toUpperCase() + mapType.slice(1)}
-          </Text>
-        </View>
-      </View>
-    </CustomLayout>
->>>>>>> master:app/(tabs)/pages/home/homePage.tsx
   );
 }
 
 const styles = StyleSheet.create({
-<<<<<<< HEAD:app/(tabs)/index.tsx
   container: { flex: 1 },
   map: { width, height },
   searchContainer: {
@@ -467,14 +350,6 @@ const styles = StyleSheet.create({
     borderColor: "#ddd",
     borderRadius: 8,
     fontSize: 16,
-=======
-  controlsContainer: {
-    position: 'absolute',
-    bottom: 40, // Above tab bar area
-    right: 16,
-    flexDirection: 'column',
-    gap: 12,
->>>>>>> master:app/(tabs)/pages/home/homePage.tsx
   },
   loadingContainer: {
     flexDirection: "row",
