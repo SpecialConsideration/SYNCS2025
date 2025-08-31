@@ -72,6 +72,10 @@ export default function SearchableRouteMap() {
       setActiveSearch(null);
       return;
     }
+    setLoading(true);
+    setActiveSearch(type);
+    try {
+      const response = await fetch(
         `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(text)}.json?` +
           `access_token=${MAPBOX_ACCESS_TOKEN}&country=AU&limit=5&types=place,locality,neighborhood,address,poi`,
         { method: "GET", headers: { "User-Agent": "AccessibleRouteApp/1.0" } }
@@ -93,6 +97,7 @@ export default function SearchableRouteMap() {
       if (type === "start") setResultsStart([]); else setResultsEnd([]);
     } finally { setLoading(false); }
   };
+
   // 📍 Current location
   const getCurrentLocation = async (type: "start" | "end") => {
     try {
@@ -111,6 +116,7 @@ export default function SearchableRouteMap() {
       Alert.alert("Location Error", "Unable to get current location");
     }
   };
+
   // 🚗 Mapbox Directions
   useEffect(() => {
     if (!start || !end) { setRouteCoords([]); setRouteInfo(null); return; }
@@ -267,6 +273,7 @@ export default function SearchableRouteMap() {
   };
   const formatDistance = (m: number) => (m >= 1000 ? `${(m / 1000).toFixed(1)} km` : `${Math.round(m)} m`);
   const currentResults = activeSearch === "start" ? resultsStart : resultsEnd;
+
   return (
     <CustomLayout>
       <View style={styles.container}>
