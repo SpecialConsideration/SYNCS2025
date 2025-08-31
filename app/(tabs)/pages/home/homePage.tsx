@@ -72,26 +72,43 @@ export default function SearchableRouteMap() {
       setActiveSearch(null);
       return;
     }
-        `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(text)}.json?` +
-          `access_token=${MAPBOX_ACCESS_TOKEN}&country=AU&limit=5&types=place,locality,neighborhood,address,poi`,
-        { method: "GET", headers: { "User-Agent": "AccessibleRouteApp/1.0" } }
-      );
+  
+    setLoading(true);
+    try {
+      const url = `https://api.mapbox.com/geocoding/v5/mapbox.places/${encodeURIComponent(text)}.json?` +
+        `access_token=${MAPBOX_ACCESS_TOKEN}&country=AU&limit=5&types=place,locality,neighborhood,address,poi`;
+  
+      const response = await fetch(url, {
+        method: "GET",
+        headers: { "User-Agent": "AccessibleRouteApp/1.0" },
+      });
+  
       if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
       const data: MapboxGeocodingResponse = await response.json();
+  
       if (type === "start") setResultsStart(data.features);
       else setResultsEnd(data.features);
+  
       if (data.features.length === 1) {
         const f = data.features[0];
         const loc: LatLng = { latitude: f.center[1], longitude: f.center[0] };
-        if (type === "start") { setStart(loc); setResultsStart([]); }
-        else { setEnd(loc); setResultsEnd([]); }
+        if (type === "start") {
+          setStart(loc);
+          setResultsStart([]);
+        } else {
+          setEnd(loc);
+          setResultsEnd([]);
+        }
         setActiveSearch(null);
       }
     } catch (err) {
       console.error("Search error:", err);
       Alert.alert("Search Error", "Unable to search locations. Please try again.");
-      if (type === "start") setResultsStart([]); else setResultsEnd([]);
-    } finally { setLoading(false); }
+      if (type === "start") setResultsStart([]);
+      else setResultsEnd([]);
+    } finally {
+      setLoading(false);
+    }
   };
   // 📍 Current location
   const getCurrentLocation = async (type: "start" | "end") => {
