@@ -20,6 +20,7 @@ import MapView, {
   PROVIDER_DEFAULT,
 } from "react-native-maps";
 import CustomLayout from "../../CustomLayout";
+import WithBottomBar from "../../components/WithBottomBar";
 
 const { width, height } = Dimensions.get("window");
 
@@ -275,6 +276,7 @@ export default function SearchableRouteMap() {
   const currentResults = activeSearch === "start" ? resultsStart : resultsEnd;
 
   return (
+    <WithBottomBar>
     <CustomLayout>
       <View style={styles.container}>
         <MapView
@@ -447,6 +449,7 @@ export default function SearchableRouteMap() {
         </View>
       </View>
     </CustomLayout>
+    </WithBottomBar>
   );
 }
 
@@ -455,7 +458,7 @@ const styles = StyleSheet.create({
   map: { width, height },
   searchContainer: {
     position: "absolute",
-    top: 100,
+    top: 70,
     left: 10,
     right: 10,
     backgroundColor: "white",

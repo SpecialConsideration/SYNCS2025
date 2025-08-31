@@ -71,7 +71,7 @@ const styles = StyleSheet.create({
   },
   floatingButtonsContainer: {
     position: 'absolute',
-    top: -75,
+    top: -45,
     left: 0,
     right: 0,
     height: 100,

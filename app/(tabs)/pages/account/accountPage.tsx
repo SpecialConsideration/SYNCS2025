@@ -1,6 +1,7 @@
 import { useRouter } from 'expo-router';
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
 import BackButtonLayout from '../../backButton';
+import WithBottomBar from '../../components/WithBottomBar';
 
 export default function AccountPage() {
   const router = useRouter();
@@ -10,6 +11,7 @@ export default function AccountPage() {
   };
 
   return (
+    <WithBottomBar>
     <BackButtonLayout>
     <View style={styles.container}>
       {/* Header */}
@@ -43,6 +45,7 @@ export default function AccountPage() {
       </View>
     </View>
     </BackButtonLayout>
+    </WithBottomBar>
   );
 }
 
