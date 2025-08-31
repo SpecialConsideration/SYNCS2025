@@ -83,7 +83,7 @@ export default function SearchableRouteMap() {
         method: "GET",
         headers: { "User-Agent": "AccessibleRouteApp/1.0" },
       });
-  
+        
       if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
       const data: MapboxGeocodingResponse = await response.json();
   
@@ -111,6 +111,7 @@ export default function SearchableRouteMap() {
       setLoading(false);
     }
   };
+
   // 📍 Current location
   const getCurrentLocation = async (type: "start" | "end") => {
     try {
@@ -129,6 +130,7 @@ export default function SearchableRouteMap() {
       Alert.alert("Location Error", "Unable to get current location");
     }
   };
+
   // 🚗 Mapbox Directions
   useEffect(() => {
     if (!start || !end) { setRouteCoords([]); setRouteInfo(null); return; }
@@ -285,6 +287,7 @@ export default function SearchableRouteMap() {
   };
   const formatDistance = (m: number) => (m >= 1000 ? `${(m / 1000).toFixed(1)} km` : `${Math.round(m)} m`);
   const currentResults = activeSearch === "start" ? resultsStart : resultsEnd;
+
   return (
     <WithBottomBar>
     <CustomLayout>
