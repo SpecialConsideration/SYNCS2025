@@ -16,6 +16,7 @@ import {
     useColorScheme,
     View,
 } from "react-native";
+import WithBottomBar from "../../components/WithBottomBar";
 
 // --- Types
 type User = { id: string; name: string };
@@ -184,6 +185,7 @@ export default function CommunityScreen() {
   const renderPost = ({ item }: { item: Post }) => {
     const muted = !!item.cw;
     return (
+        <WithBottomBar>
       <View style={styles.card} accessible accessibilityRole="summary">
         <View style={styles.cardHeader}>
           <Text style={styles.author} accessibilityRole="text">
@@ -265,6 +267,7 @@ export default function CommunityScreen() {
           </TouchableOpacity>
         </View>
       </View>
+      </WithBottomBar>
     );
   };
 
@@ -455,6 +458,7 @@ export default function CommunityScreen() {
         </KeyboardAvoidingView>
       </Modal>
     </View>
+    
   );
 }
 

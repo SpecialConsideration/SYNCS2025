@@ -52,7 +52,7 @@ export default memo(function BottomBar() {
       </View>
 
       {/* Center FAB */}
-      <TouchableOpacity activeOpacity={0.9} onPress={() => router.push("/")} style={styles.fab}>
+      <TouchableOpacity activeOpacity={0.9} onPress={() => router.push("/pages/sos/sosPage")} style={styles.fab}>
         {Platform.OS === "ios" ? (
           <IconSymbol name="sos" size={26} color="#fff" />
         ) : (
