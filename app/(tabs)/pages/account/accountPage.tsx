@@ -1,5 +1,6 @@
 import { useRouter } from 'expo-router';
 import { StyleSheet, Text, TouchableOpacity, View } from 'react-native';
+import BackButtonLayout from '../../backButton';
 
 export default function AccountPage() {
   const router = useRouter();
@@ -9,6 +10,7 @@ export default function AccountPage() {
   };
 
   return (
+    <BackButtonLayout>
     <View style={styles.container}>
       {/* Header */}
       <View style={styles.header}>
@@ -40,6 +42,7 @@ export default function AccountPage() {
         </TouchableOpacity>
       </View>
     </View>
+    </BackButtonLayout>
   );
 }
 

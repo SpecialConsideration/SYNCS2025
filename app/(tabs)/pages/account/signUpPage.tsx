@@ -36,6 +36,16 @@ export default function SignUpPage({ onSwitchToLogin }: { onSwitchToLogin: () =>
     { value: 'prefer-not-to-say', label: 'Prefer not to say' },
   ];
 
+  const handleBackLogin = () => {
+    console.log('back to login pressed');
+    router.push('/'); // Navigate to the login page
+  };
+
+  const handleBack = () => {
+    console.log('back pressed');
+    router.back() // Navigate to the last page
+  };
+
   const handleInputChange = (field: string, value: string) => {
     setFormData((prev) => ({
       ...prev,
@@ -69,7 +79,7 @@ export default function SignUpPage({ onSwitchToLogin }: { onSwitchToLogin: () =>
     <View style={styles.container}>
       {/* Header */}
       <View style={styles.header}>
-        <TouchableOpacity onPress={onSwitchToLogin} style={styles.backButton}>
+        <TouchableOpacity onPress={handleBack} style={styles.backButton}>
           <Text style={styles.backButtonText}>{'<'}</Text>
         </TouchableOpacity>
         <Text style={styles.headerTitle}>Create Account</Text>
@@ -160,7 +170,7 @@ export default function SignUpPage({ onSwitchToLogin }: { onSwitchToLogin: () =>
         <TouchableOpacity style={styles.submitButton} onPress={handleSubmit}>
           <Text style={styles.submitButtonText}>Create Account</Text>
         </TouchableOpacity>
-        <TouchableOpacity onPress={onSwitchToLogin}>
+        <TouchableOpacity onPress={() => handleBackLogin()}>
           <Text style={styles.switchToLoginText}>Already have an account? Sign in</Text>
         </TouchableOpacity>
       </View>
